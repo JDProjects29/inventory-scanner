@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+  input { font-size: 22px; padding: 10px; width: 250px; text-align: center; }
+  button { font-size: 18px; padding: 12px 20px; margin: 6px; border: none; border-radius: 8px; color: white; cursor:pointer; }
+  .add { background-color: #2e7d32; }
+  .remove { background-color: #c62828; }
+  .camera { background-color: #1565c0; }
+  .mode { background-color: #6a1b9a; }
+  .submit { background-color: #ef6c00; }
+  .clear { background-color: #616161; }
+  #result { margin-top: 15px; font-size: 17px; font-weight: bold; min-height: 24px; }
+  #reader { width: 280px; margin: 15px auto; }
+  table { margin: 15px auto; border-collapse: collapse; width: 90%; max-width: 400px;}
+  td, th { border: 1px solid #ccc; padding: 6px 10px; font-size: 15px; }
+  .removeRow { color: #c62828; cursor:pointer; font-weight:bold; font-size:20px; }
+  .stepper { width:32px; height:32px; font-size:20px; border-radius:6px; border:none; background:#455a64; color:white; cursor:pointer; }
+  .qtyInput { width:55px; text-align:center; font-size:17px; margin:0 5px; padding:5px 0; }
+  #bulkSection { display:none; }
+</style>
+</head>
+<body>
+  <h1>Inventory Scanner</h1>
+
+  <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
+  <br><br>
+
+  <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
+  <br>
+  <button class="add" onclick="handleScan('add')">ADD (+1)</button>
+  <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
+  <br>
+  <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
+  <div id="reader"></div>
+  <div id="result"></div>
+
+  <div id="bulkSection">
+    <h3 id="bulkActionLabel">Currently: ADDING items</h3>
+    <button class="add" onclick="setBulkAction('add')">Set to ADD</button>
+    <button class="remove" onclick="setBulkAction('remove')">Set to REMOVE</button>
+    <table id="bulkTable">
+      <tr><th>Barcode</th><th>Change</th><th></th></tr>
+    </table>
+    <button class="submit" onclick="submitBulk()">Submit All</button>
+    <button class="clear" onclick="clearBulk()">Clear List</button>
+  </div>
+
+  <script>
+    // PASTE YOUR APPS SCRIPT WEB APP URL BELOW (from Part 7b)
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw8MilQ1PiIVsqVlA-JViD631rZqcLBtGfPRymWQ9cU8idvOxlhn1eYF6vcms9i4tsl/exec';
+
+    let bulkMode = false;
+    let bulkAction = 'add';
+    let bulkItems = {};
+    let lastScanCode = '';
+    let lastScanTime = 0;
+
+    document.getElementById('barcode').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        handleScan(bulkMode ? bulkAction : 'add');
+      }
+    });
+
+    function toggleMode() {
+      bulkMode = !bulkMode;
+      document.getElementById('bulkSection').style.display = bulkMode ? 'block' : 'none';
+      document.getElementById('modeBtn').innerText = bulkMode ? 'Switch to Instant Mode' : 'Switch to Bulk Mode';
+      document.getElementById('result').innerText = bulkMode
+        ? 'Bulk mode on: scans are added to the list below.'
+        : 'Instant mode on: each scan updates Smartsheet right away.';
+    }
+
+    function setBulkAction(action) {
+      bulkAction = action;
+      document.getElementById('bulkActionLabel').innerText = 'Currently: ' + (action === 'add' ? 'ADDING items' : 'REMOVING items');
+    }
+
+    function handleScan(action) {
+      const barcode = document.getElementById('barcode').value.trim();
+      document.getElementById('barcode').value = '';
+      document.getElementById('barcode').focus();
+      if (!barcode) return;
+
+      if (bulkMode) {
+        const step = action === 'add' ? 1 : -1;
+        bulkItems[barcode] = (bulkItems[barcode] || 0) + step;
+        renderBulkTable();
+        document.getElementById('result').innerText = 'Scanned: ' + barcode;
+      } else {
+        sendToServer([{ barcode: barcode, delta: action === 'add' ? 1 : -1 }], true);
+      }
+    }
+
+    // Scanning the same barcode again just bumps its quantity by 1 automatically.
+    // You can also edit the number directly, or use the − / + buttons, or delete the row entirely.
+    function renderBulkTable() {
+      const table = document.getElementById('bulkTable');
+      table.innerHTML = '<tr><th>Barcode</th><th>Quantity</th><th></th></tr>';
+      Object.keys(bulkItems).forEach(function(bc) {
+        const qty = bulkItems[bc];
+        const row = table.insertRow();
+        row.insertCell(0).innerText = bc;
+
+        const qtyCell = row.insertCell(1);
+        qtyCell.innerHTML =
+          '<button class="stepper" onclick="adjustQty(\'' + bc + '\', -1)">−</button>' +
+          '<input type="number" class="qtyInput" value="' + qty + '" onchange="setQty(\'' + bc + '\', this.value)">' +
+          '<button class="stepper" onclick="adjustQty(\'' + bc + '\', 1)">+</button>';
+
+        const delCell = row.insertCell(2);
+        delCell.innerHTML = '<span class="removeRow" onclick="removeBulkItem(\'' + bc + '\')">✕</span>';
+      });
+    }
+
+    function adjustQty(bc, amount) {
+      bulkItems[bc] = (bulkItems[bc] || 0) + amount;
+      renderBulkTable();
+    }
+
+    function setQty(bc, value) {
+      const n = parseInt(value, 10);
+      bulkItems[bc] = isNaN(n) ? 0 : n;
+    }
+
+    function removeBulkItem(bc) {
+      delete bulkItems[bc];
+      renderBulkTable();
+    }
+
+    function clearBulk() {
+      bulkItems = {};
+      renderBulkTable();
+      document.getElementById('result').innerText = 'List cleared.';
+    }
+
+    function submitBulk() {
+      const items = Object.keys(bulkItems).map(function(bc) {
+        return { barcode: bc, delta: bulkItems[bc] };
+      });
+      if (items.length === 0) {
+        document.getElementById('result').innerText = 'Nothing to submit.';
+        return;
+      }
+      sendToServer(items, false);
+    }
+
+    function sendToServer(items, isInstant) {
+      document.getElementById('result').innerText = 'Working...';
+      fetch(WEBAPP_URL, {
+        method: 'POST',
+        body: JSON.stringify({ items: items })
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.success) {
+            document.getElementById('result').innerText = 'Error: ' + data.message;
+            return;
+          }
+          const summary = data.results.map(function(r) { return r.message; }).join(' | ');
+          document.getElementById('result').innerText = summary;
+          if (!isInstant) {
+            bulkItems = {};
+            renderBulkTable();
+          }
+        })
+        .catch(function(err) {
+          document.getElementById('result').innerText = 'Error: ' + err.message;
+        });
+    }
+
+    let html5QrCode;
+    let cameraRunning = false;
+
+    function toggleCamera() {
+      if (cameraRunning) { stopCamera(); } else { startCameraInternal(); }
+    }
+
+    function stopCamera() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(function() {
+          cameraRunning = false;
+          document.getElementById('reader').innerHTML = '';
+          document.getElementById('cameraBtn').innerText = '📷 Scan with Camera';
+        });
+      }
+    }
+
+    function startCameraInternal() {
+      cameraRunning = true;
+      document.getElementById('cameraBtn').innerText = '⏹ Stop Camera';
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 200 },
+        function(decodedText) {
+          const now = Date.now();
+          if (decodedText === lastScanCode && now - lastScanTime < 2000) return; // avoid double-counting the same scan
+          lastScanCode = decodedText;
+          lastScanTime = now;
+          document.getElementById('barcode').value = decodedText;
+          handleScan(bulkMode ? bulkAction : 'add');
+          if (!bulkMode) { stopCamera(); } // in instant mode, stop after one scan; in bulk mode, keep scanning
+        }
+      );
+    }
+  </script>
+</body>
+    </html>
