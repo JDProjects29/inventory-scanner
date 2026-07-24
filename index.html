@@ -4,49 +4,106 @@
 <meta charset="UTF-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-  input { font-size: 22px; padding: 10px; width: 250px; text-align: center; }
-  button { font-size: 18px; padding: 12px 20px; margin: 6px; border: none; border-radius: 8px; color: white; cursor:pointer; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    color: #fff;
+    min-height: 100vh;
+    background-image: url('https://lh3.googleusercontent.com/d/1qWOUjgedEEOdzldBypFmJWB1Ghgr8kAU');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+  .topbar {
+    background: #000;
+    padding: 18px 10px;
+    border-bottom: 3px solid #d4af37;
+  }
+  .topbar h1 {
+    color: #d4af37;
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 1px;
+  }
+  .container {
+    max-width: 400px;
+    margin: 25px auto;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid #d4af37;
+    border-radius: 14px;
+    padding: 25px 18px;
+  }
+  input#barcode {
+    font-size: 20px;
+    padding: 10px;
+    width: 85%;
+    max-width: 240px;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 10px;
+  }
+  button {
+    font-size: 16px;
+    padding: 12px 18px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+  }
   .add { background-color: #2e7d32; }
   .remove { background-color: #c62828; }
   .camera { background-color: #1565c0; }
-  .mode { background-color: #6a1b9a; }
-  .submit { background-color: #ef6c00; }
-  .clear { background-color: #616161; }
-  #result { margin-top: 15px; font-size: 17px; font-weight: bold; min-height: 24px; }
-  #reader { width: 280px; margin: 15px auto; }
-  table { margin: 15px auto; border-collapse: collapse; width: 90%; max-width: 400px;}
-  td, th { border: 1px solid #ccc; padding: 6px 10px; font-size: 15px; }
-  .removeRow { color: #c62828; cursor:pointer; font-weight:bold; font-size:20px; }
-  .stepper { width:32px; height:32px; font-size:20px; border-radius:6px; border:none; background:#455a64; color:white; cursor:pointer; }
-  .qtyInput { width:55px; text-align:center; font-size:17px; margin:0 5px; padding:5px 0; }
-  #bulkSection { display:none; }
+  .mode { background-color: #d4af37; color: #000; font-weight: bold; }
+  .submit { background-color: #d4af37; color: #000; font-weight: bold; }
+  .clear { background-color: #444; }
+  #result { margin-top: 15px; font-size: 16px; font-weight: bold; min-height: 22px; }
+  #reader { width: 260px; margin: 15px auto; border-radius: 10px; overflow: hidden; }
+  table { margin: 15px auto 0; border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; }
+  th { background: #000; color: #d4af37; padding: 8px; font-size: 14px; }
+  td { padding: 8px; color: #222; border-bottom: 1px solid #eee; font-size: 14px; }
+  .removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 20px; }
+  .stepper { width: 32px; height: 32px; font-size: 20px; border-radius: 6px; background: #455a64; color: white; cursor: pointer; }
+  .qtyInput { width: 55px; text-align: center; font-size: 16px; margin: 0 5px; padding: 5px 0; border-radius: 6px; border: 1px solid #ccc; }
+  #bulkActionLabel { color: #d4af37; font-size: 16px; }
+  #bulkSection { display: none; margin-top: 8px; }
+  #instantButtons { margin-top: 5px; }
 </style>
 </head>
 <body>
-  <h1>Inventory Scanner</h1>
+  <div class="topbar"><h1>Inventory Scanner</h1></div>
 
-  <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
-  <br><br>
+  <div class="container">
+    <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
 
-  <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
-  <br>
-  <button class="add" onclick="handleScan('add')">ADD (+1)</button>
-  <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
-  <br>
-  <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
-  <div id="reader"></div>
-  <div id="result"></div>
+    <br><br>
+    <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
 
-  <div id="bulkSection">
-    <h3 id="bulkActionLabel">Currently: ADDING items</h3>
-    <button class="add" onclick="setBulkAction('add')">Set to ADD</button>
-    <button class="remove" onclick="setBulkAction('remove')">Set to REMOVE</button>
-    <table id="bulkTable">
-      <tr><th>Barcode</th><th>Change</th><th></th></tr>
-    </table>
-    <button class="submit" onclick="submitBulk()">Submit All</button>
-    <button class="clear" onclick="clearBulk()">Clear List</button>
+    <div id="instantButtons">
+      <br>
+      <button class="add" onclick="handleScan('add')">ADD (+1)</button>
+      <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
+    </div>
+
+    <br>
+    <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
+    <div id="reader"></div>
+    <div id="result"></div>
+
+    <div id="bulkSection">
+      <h3 id="bulkActionLabel">Currently: ADDING items</h3>
+      <button class="add" onclick="setBulkAction('add')">Set to ADD</button>
+      <button class="remove" onclick="setBulkAction('remove')">Set to REMOVE</button>
+      <table id="bulkTable">
+        <tr><th>Barcode</th><th>Quantity</th><th></th></tr>
+      </table>
+      <br>
+      <button class="submit" onclick="submitBulk()">Submit All</button>
+      <button class="clear" onclick="clearBulk()">Clear List</button>
+    </div>
   </div>
 
   <script>
@@ -68,6 +125,7 @@
     function toggleMode() {
       bulkMode = !bulkMode;
       document.getElementById('bulkSection').style.display = bulkMode ? 'block' : 'none';
+      document.getElementById('instantButtons').style.display = bulkMode ? 'none' : 'block';
       document.getElementById('modeBtn').innerText = bulkMode ? 'Switch to Instant Mode' : 'Switch to Bulk Mode';
       document.getElementById('result').innerText = bulkMode
         ? 'Bulk mode on: scans are added to the list below.'
@@ -209,4 +267,4 @@
     }
   </script>
 </body>
-    </html>
+</html>
