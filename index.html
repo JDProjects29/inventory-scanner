@@ -365,24 +365,42 @@
     function startCameraInternal() {
       cameraRunning = true;
       document.getElementById('cameraBtn').innerText = '⏹ Stop Camera';
+      document.getElementById('result').innerText = 'Starting camera...';
       html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 200 },
-        function(decodedText) {
-          const now = Date.now();
-          if (decodedText === lastScanCode && now - lastScanTime < 2000) return; // avoid double-counting the same scan
-          lastScanCode = decodedText;
-          lastScanTime = now;
-          document.getElementById('barcode').value = decodedText;
-          const action = bulkMode ? bulkAction : instantAction;
-          handleScan(action, true);
-          document.activeElement && document.activeElement.blur();
-          // In instant "update" mode, keep the camera running and let the user tap
-          // into the qty box themselves; otherwise stop after one scan in instant mode.
-          if (!bulkMode && action !== 'update') { stopCamera(); }
-        }
-      );
+
+      const onScanSuccess = function(decodedText) {
+        const now = Date.now();
+        if (decodedText === lastScanCode && now - lastScanTime < 2000) return; // avoid double-counting the same scan
+        lastScanCode = decodedText;
+        lastScanTime = now;
+        document.getElementById('barcode').value = decodedText;
+        const action = bulkMode ? bulkAction : instantAction;
+        handleScan(action, true);
+        document.activeElement && document.activeElement.blur();
+        // In instant "update" mode, keep the camera running and let the user tap
+        // into the qty box themselves; otherwise stop after one scan in instant mode.
+        if (!bulkMode && action !== 'update') { stopCamera(); }
+      };
+
+      // Try the rear camera first; if that fails (common on some Android
+      // phones / in-app browsers), fall back to whatever camera is available.
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, onScanSuccess)
+        .then(function() {
+          document.getElementById('result').innerText = 'Camera ready — point at a barcode.';
+        })
+        .catch(function(err) {
+          html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 200 }, onScanSuccess)
+            .then(function() {
+              document.getElementById('result').innerText = 'Camera ready — point at a barcode.';
+            })
+            .catch(function(err2) {
+              cameraRunning = false;
+              document.getElementById('cameraBtn').innerText = '📷 Scan with Camera';
+              document.getElementById('result').innerText =
+                'Camera error: ' + (err2 && err2.message ? err2.message : err2) +
+                '\n\nCheck that camera permission is allowed for this site, and that you\'re opening it in Chrome/Safari directly (not an in-app browser like Facebook/Instagram/TikTok).';
+            });
+        });
     }
   </script>
 </body>
