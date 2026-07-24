@@ -2,9 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { max-width: 100%; overflow-x: hidden; }
   body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -18,42 +20,45 @@
   }
   .topbar {
     background: #000;
-    padding: 18px 10px;
+    padding: 14px 10px;
     border-bottom: 3px solid #d4af37;
   }
   .topbar h1 {
     color: #d4af37;
     margin: 0;
-    font-size: 24px;
+    font-size: clamp(18px, 5.5vw, 24px);
     letter-spacing: 1px;
   }
   .container {
+    width: 94vw;
     max-width: 400px;
-    margin: 25px auto;
-    background: rgba(0, 0, 0, 0.65);
+    margin: 18px auto;
+    background: rgba(0, 0, 0, 0.68);
     border: 1px solid #d4af37;
     border-radius: 14px;
-    padding: 25px 18px;
+    padding: 18px 12px;
   }
   input#barcode {
-    font-size: 20px;
+    font-size: 18px;
     padding: 10px;
-    width: 85%;
-    max-width: 240px;
+    width: 90%;
+    max-width: 260px;
     text-align: center;
     border-radius: 8px;
     border: none;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   button {
-    font-size: 16px;
-    padding: 12px 18px;
-    margin: 5px;
+    font-size: 14px;
+    padding: 10px 14px;
+    margin: 4px;
     border: none;
     border-radius: 8px;
     color: white;
     cursor: pointer;
   }
+  button.small { font-size: 13px; padding: 8px 10px; margin: 3px; }
+  .btnRow { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin: 4px 0; }
   .add { background-color: #2e7d32; }
   .remove { background-color: #c62828; }
   .update { background-color: #ef6c00; font-weight: bold; }
@@ -61,16 +66,21 @@
   .mode { background-color: #d4af37; color: #000; font-weight: bold; }
   .submit { background-color: #d4af37; color: #000; font-weight: bold; }
   .clear { background-color: #444; }
-  #result { margin-top: 15px; font-size: 16px; font-weight: bold; min-height: 22px; }
-  #reader { width: 260px; margin: 15px auto; border-radius: 10px; overflow: hidden; }
-  table { margin: 15px auto 0; border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; }
-  th { background: #000; color: #d4af37; padding: 8px; font-size: 14px; }
-  td { padding: 8px; color: #222; border-bottom: 1px solid #eee; font-size: 14px; }
-  .removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 20px; }
-  .stepper { width: 32px; height: 32px; font-size: 20px; border-radius: 6px; background: #455a64; color: white; cursor: pointer; }
-  .qtyInput { width: 55px; text-align: center; font-size: 16px; margin: 0 5px; padding: 5px 0; border-radius: 6px; border: 1px solid #ccc; }
-  .modeTag { font-size: 11px; color: #888; }
-  #bulkActionLabel { color: #d4af37; font-size: 16px; }
+  #result { margin-top: 12px; font-size: 15px; font-weight: bold; min-height: 22px; word-break: break-word; }
+  #reader { width: 100%; max-width: 260px; margin: 12px auto; border-radius: 10px; overflow: hidden; }
+  #instantActionLabel, #bulkActionLabel { color: #d4af37; font-size: 14px; margin: 6px 0; }
+  #instantQtyRow { display: none; margin-top: 6px; align-items: center; justify-content: center; gap: 6px; }
+  #instantQty { width: 90px; text-align: center; font-size: 16px; padding: 8px 4px; border-radius: 6px; border: 1px solid #ccc; }
+
+  .tableWrap { overflow-x: auto; margin-top: 12px; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; min-width: 260px; background: #fff; border-radius: 10px; overflow: hidden; }
+  th { background: #000; color: #d4af37; padding: 6px 4px; font-size: 12px; }
+  td { padding: 6px 4px; color: #222; border-bottom: 1px solid #eee; font-size: 12px; }
+  .modeTag { font-size: 9px; color: #888; line-height: 1.2; }
+  .removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 18px; padding: 0 4px; }
+  .stepper { width: 26px; height: 26px; font-size: 16px; border-radius: 6px; background: #455a64; color: white; cursor: pointer; padding: 0; margin: 0 2px; }
+  .qtyInput { width: 44px; text-align: center; font-size: 14px; margin: 0 2px; padding: 4px 0; border-radius: 6px; border: 1px solid #ccc; }
+
   #bulkSection { display: none; margin-top: 8px; }
   #instantButtons { margin-top: 5px; }
 </style>
@@ -85,11 +95,16 @@
     <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
 
     <div id="instantButtons">
-      <br>
-      <button class="update" onclick="handleUpdateQty()">✎ Update QTY</button>
-      <br>
-      <button class="add" onclick="handleScan('add')">ADD (+1)</button>
-      <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
+      <div class="btnRow">
+        <button class="update small" onclick="setInstantAction('update')">Set to UPDATE QTY</button>
+        <button class="add small" onclick="setInstantAction('add')">Set to ADD</button>
+        <button class="remove small" onclick="setInstantAction('remove')">Set to REMOVE</button>
+      </div>
+      <div id="instantActionLabel">Currently: ADDING items (+1 per scan)</div>
+      <div id="instantQtyRow">
+        <input type="number" id="instantQty" placeholder="Exact qty" inputmode="numeric">
+        <button class="submit small" onclick="submitInstantUpdate()">Set</button>
+      </div>
     </div>
 
     <br>
@@ -99,12 +114,16 @@
 
     <div id="bulkSection">
       <h3 id="bulkActionLabel">Currently: ADDING items</h3>
-      <button class="update" onclick="setBulkAction('update')">Set to UPDATE QTY</button>
-      <button class="add" onclick="setBulkAction('add')">Set to ADD</button>
-      <button class="remove" onclick="setBulkAction('remove')">Set to REMOVE</button>
-      <table id="bulkTable">
-        <tr><th>Barcode</th><th>Quantity</th><th></th></tr>
-      </table>
+      <div class="btnRow">
+        <button class="update small" onclick="setBulkAction('update')">Set to UPDATE QTY</button>
+        <button class="add small" onclick="setBulkAction('add')">Set to ADD</button>
+        <button class="remove small" onclick="setBulkAction('remove')">Set to REMOVE</button>
+      </div>
+      <div class="tableWrap">
+        <table id="bulkTable">
+          <tr><th>Barcode</th><th>Quantity</th><th></th></tr>
+        </table>
+      </div>
       <br>
       <button class="submit" onclick="submitBulk()">Submit All</button>
       <button class="clear" onclick="clearBulk()">Clear List</button>
@@ -116,19 +135,24 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw8MilQ1PiIVsqVlA-JViD631rZqcLBtGfPRymWQ9cU8idvOxlhn1eYF6vcms9i4tsl/exec';
 
     let bulkMode = false;
-    let bulkAction = 'add'; // 'add' | 'remove' | 'update'
-    // bulkItems now stores { qty: number, mode: 'delta' | 'absolute' }
+    let bulkAction = 'add';       // 'add' | 'remove' | 'update'
+    let instantAction = 'add';    // 'add' | 'remove' | 'update'
+    // bulkItems stores { qty: number, mode: 'delta' | 'absolute' }
     let bulkItems = {};
     let lastScanCode = '';
     let lastScanTime = 0;
 
     document.getElementById('barcode').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
-        if (bulkMode) {
-          handleScan(bulkAction);
-        } else {
-          handleScan('add');
-        }
+        e.preventDefault();
+        handleScan(bulkMode ? bulkAction : instantAction);
+      }
+    });
+
+    document.getElementById('instantQty').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitInstantUpdate();
       }
     });
 
@@ -142,6 +166,7 @@
         : 'Instant mode on: each scan updates Smartsheet right away.';
     }
 
+    // ----- Bulk mode -----
     function setBulkAction(action) {
       bulkAction = action;
       const label = action === 'add' ? 'ADDING items' : action === 'remove' ? 'REMOVING items' : 'UPDATING QTY (exact set)';
@@ -149,19 +174,33 @@
     }
 
     // ----- Instant mode -----
+    function setInstantAction(action) {
+      instantAction = action;
+      const label = action === 'add' ? 'ADDING items (+1 per scan)' : action === 'remove' ? 'REMOVING items (-1 per scan)' : 'UPDATING QTY (exact set)';
+      document.getElementById('instantActionLabel').innerText = 'Currently: ' + label;
+      document.getElementById('instantQtyRow').style.display = action === 'update' ? 'flex' : 'none';
+    }
+
     function handleScan(action) {
       const barcode = document.getElementById('barcode').value.trim();
+      if (!barcode) return;
+
+      if (action === 'update' && !bulkMode) {
+        // Instant update mode: keep barcode visible, move focus to the qty box below
+        document.getElementById('instantQty').value = '';
+        document.getElementById('instantQty').focus();
+        document.getElementById('result').innerText = 'Enter exact quantity for ' + barcode + ' below.';
+        return;
+      }
+
       document.getElementById('barcode').value = '';
       document.getElementById('barcode').focus();
-      if (!barcode) return;
 
       if (bulkMode) {
         if (action === 'update') {
-          const entered = window.prompt('Set exact quantity for ' + barcode + ':', '0');
-          if (entered === null) return; // cancelled
-          const n = parseInt(entered, 10);
-          if (isNaN(n)) return;
-          bulkItems[barcode] = { qty: n, mode: 'absolute' };
+          // Add directly to the list as an editable "SET TO" row — no popup
+          const existing = bulkItems[barcode];
+          bulkItems[barcode] = { qty: (existing && existing.mode === 'absolute') ? existing.qty : 0, mode: 'absolute' };
         } else {
           const step = action === 'add' ? 1 : -1;
           const existing = bulkItems[barcode];
@@ -175,26 +214,26 @@
       }
     }
 
-    // Instant "Update QTY" button: uses whatever is currently in the barcode field
-    function handleUpdateQty() {
+    function submitInstantUpdate() {
       const barcode = document.getElementById('barcode').value.trim();
+      const qtyVal = document.getElementById('instantQty').value;
       if (!barcode) {
         document.getElementById('result').innerText = 'Scan or type a barcode first.';
         return;
       }
-      const entered = window.prompt('Set exact quantity for ' + barcode + ':', '0');
-      if (entered === null) return; // cancelled
-      const n = parseInt(entered, 10);
+      const n = parseInt(qtyVal, 10);
       if (isNaN(n)) {
-        document.getElementById('result').innerText = 'Please enter a valid number.';
+        document.getElementById('result').innerText = 'Enter a valid number.';
         return;
       }
       document.getElementById('barcode').value = '';
+      document.getElementById('instantQty').value = '';
       document.getElementById('barcode').focus();
       sendToServer([{ barcode: barcode, value: n }], true);
     }
 
-    // ----- Bulk mode table -----
+    // Scanning the same barcode again just bumps its quantity by 1 automatically (add/remove modes).
+    // You can also edit the number directly, or use the − / + buttons, or delete the row entirely.
     function renderBulkTable() {
       const table = document.getElementById('bulkTable');
       table.innerHTML = '<tr><th>Barcode</th><th>Quantity</th><th></th></tr>';
@@ -206,7 +245,7 @@
         const qtyCell = row.insertCell(1);
         qtyCell.innerHTML =
           '<button class="stepper" onclick="adjustQty(\'' + bc + '\', -1)">−</button>' +
-          '<input type="number" class="qtyInput" value="' + item.qty + '" onchange="setQty(\'' + bc + '\', this.value)">' +
+          '<input type="number" inputmode="numeric" class="qtyInput" value="' + item.qty + '" onchange="setQty(\'' + bc + '\', this.value)">' +
           '<button class="stepper" onclick="adjustQty(\'' + bc + '\', 1)">+</button>';
 
         const delCell = row.insertCell(2);
@@ -299,16 +338,15 @@
         { fps: 10, qrbox: 200 },
         function(decodedText) {
           const now = Date.now();
-          if (decodedText === lastScanCode && now - lastScanTime < 2000) return;
+          if (decodedText === lastScanCode && now - lastScanTime < 2000) return; // avoid double-counting the same scan
           lastScanCode = decodedText;
           lastScanTime = now;
           document.getElementById('barcode').value = decodedText;
-          if (bulkMode) {
-            handleScan(bulkAction);
-          } else {
-            handleScan('add');
-          }
-          if (!bulkMode) { stopCamera(); }
+          const action = bulkMode ? bulkAction : instantAction;
+          handleScan(action);
+          // In instant "update" mode, keep the camera running and let the user type the qty;
+          // otherwise stop after one scan in instant mode.
+          if (!bulkMode && action !== 'update') { stopCamera(); }
         }
       );
     }
