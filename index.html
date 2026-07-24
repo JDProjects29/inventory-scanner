@@ -66,7 +66,7 @@
   .mode { background-color: #d4af37; color: #000; font-weight: bold; }
   .submit { background-color: #d4af37; color: #000; font-weight: bold; }
   .clear { background-color: #444; }
-  #result { margin-top: 12px; font-size: 15px; font-weight: bold; min-height: 22px; word-break: break-word; }
+  #result { margin-top: 14px; font-size: 12px; font-weight: normal; min-height: 22px; word-break: break-word; text-align: left; white-space: pre-line; }
   #reader { width: 100%; max-width: 260px; margin: 12px auto; border-radius: 10px; overflow: hidden; }
   #instantActionLabel, #bulkActionLabel { color: #d4af37; font-size: 14px; margin: 6px 0; }
   #instantQtyRow { display: none; margin-top: 6px; align-items: center; justify-content: center; gap: 6px; }
@@ -111,7 +111,6 @@
     <br>
     <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
     <div id="reader"></div>
-    <div id="result"></div>
 
     <div id="bulkSection" style="display:block;">
       <h3 id="bulkActionLabel">Currently: ADDING items</h3>
@@ -129,6 +128,8 @@
       <button class="submit" onclick="submitBulk()">Submit All</button>
       <button class="clear" onclick="clearBulk()">Clear List</button>
     </div>
+
+    <div id="result"></div>
   </div>
 
   <script>
@@ -332,7 +333,7 @@
             document.getElementById('result').innerText = 'Error: ' + data.message;
             return;
           }
-          const summary = data.results.map(function(r) { return r.message; }).join(' | ');
+          const summary = 'Items Updated:\n\n' + data.results.map(function(r) { return '• ' + r.message; }).join('\n');
           document.getElementById('result').innerText = summary;
           if (!isInstant) {
             bulkItems = {};
