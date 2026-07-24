@@ -145,7 +145,7 @@
     document.getElementById('barcode').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        handleScan(bulkMode ? bulkAction : instantAction);
+        handleScan(bulkMode ? bulkAction : instantAction, false);
       }
     });
 
@@ -181,20 +181,30 @@
       document.getElementById('instantQtyRow').style.display = action === 'update' ? 'flex' : 'none';
     }
 
-    function handleScan(action) {
+    function handleScan(action, fromCamera) {
       const barcode = document.getElementById('barcode').value.trim();
       if (!barcode) return;
 
       if (action === 'update' && !bulkMode) {
         // Instant update mode: keep barcode visible, move focus to the qty box below
+        // (skip auto-focus for camera scans so the keyboard doesn't pop up)
         document.getElementById('instantQty').value = '';
-        document.getElementById('instantQty').focus();
+        if (!fromCamera) {
+          document.getElementById('instantQty').focus();
+        } else {
+          document.getElementById('instantQty').blur();
+          document.getElementById('barcode').blur();
+        }
         document.getElementById('result').innerText = 'Enter exact quantity for ' + barcode + ' below.';
         return;
       }
 
       document.getElementById('barcode').value = '';
-      document.getElementById('barcode').focus();
+      if (!fromCamera) {
+        document.getElementById('barcode').focus();
+      } else {
+        document.getElementById('barcode').blur();
+      }
 
       if (bulkMode) {
         if (action === 'update') {
@@ -228,7 +238,6 @@
       }
       document.getElementById('barcode').value = '';
       document.getElementById('instantQty').value = '';
-      document.getElementById('barcode').focus();
       sendToServer([{ barcode: barcode, value: n }], true);
     }
 
@@ -343,9 +352,10 @@
           lastScanTime = now;
           document.getElementById('barcode').value = decodedText;
           const action = bulkMode ? bulkAction : instantAction;
-          handleScan(action);
-          // In instant "update" mode, keep the camera running and let the user type the qty;
-          // otherwise stop after one scan in instant mode.
+          handleScan(action, true);
+          document.activeElement && document.activeElement.blur();
+          // In instant "update" mode, keep the camera running and let the user tap
+          // into the qty box themselves; otherwise stop after one scan in instant mode.
           if (!bulkMode && action !== 'update') { stopCamera(); }
         }
       );
