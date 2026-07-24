@@ -89,12 +89,12 @@
   <div class="topbar"><h1>Inventory Scanner</h1></div>
 
   <div class="container">
-    <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
+    <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Instant Mode</button>
 
     <br><br>
     <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
 
-    <div id="instantButtons">
+    <div id="instantButtons" style="display:none;">
       <div class="btnRow">
         <button class="update small" onclick="setInstantAction('update')">Set to UPDATE QTY</button>
         <button class="add small" onclick="setInstantAction('add')">Set to ADD</button>
@@ -112,7 +112,7 @@
     <div id="reader"></div>
     <div id="result"></div>
 
-    <div id="bulkSection">
+    <div id="bulkSection" style="display:block;">
       <h3 id="bulkActionLabel">Currently: ADDING items</h3>
       <div class="btnRow">
         <button class="update small" onclick="setBulkAction('update')">Set to UPDATE QTY</button>
@@ -134,7 +134,7 @@
     // PASTE YOUR APPS SCRIPT WEB APP URL BELOW
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw8MilQ1PiIVsqVlA-JViD631rZqcLBtGfPRymWQ9cU8idvOxlhn1eYF6vcms9i4tsl/exec';
 
-    let bulkMode = false;
+    let bulkMode = true;         // bulk mode is the default
     let bulkAction = 'add';       // 'add' | 'remove' | 'update'
     let instantAction = 'add';    // 'add' | 'remove' | 'update'
     // bulkItems stores { qty: number, mode: 'delta' | 'absolute' }
