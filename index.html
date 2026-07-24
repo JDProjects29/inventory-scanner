@@ -77,6 +77,7 @@
   th { background: #000; color: #d4af37; padding: 6px 4px; font-size: 12px; }
   td { padding: 6px 4px; color: #222; border-bottom: 1px solid #eee; font-size: 12px; }
   .modeTag { font-size: 9px; color: #888; line-height: 1.2; }
+  .itemName { font-size: 11px; color: #444; font-weight: bold; line-height: 1.2; }
   .removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 18px; padding: 0 4px; }
   .stepper { width: 26px; height: 26px; font-size: 16px; border-radius: 6px; background: #455a64; color: white; cursor: pointer; padding: 0; margin: 0 2px; }
   .qtyInput { width: 44px; text-align: center; font-size: 14px; margin: 0 2px; padding: 4px 0; border-radius: 6px; border: 1px solid #ccc; }
@@ -141,6 +142,24 @@
     let bulkItems = {};
     let lastScanCode = '';
     let lastScanTime = 0;
+    let itemDirectory = {}; // { "BARCODE": "Item Name" }
+
+    function loadDirectory() {
+      fetch(WEBAPP_URL + '?action=directory')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.success) {
+            itemDirectory = data.directory || {};
+            renderBulkTable(); // refresh in case names arrived after some scans
+          }
+        })
+        .catch(function() { /* names are a nice-to-have; scanning still works without them */ });
+    }
+    loadDirectory();
+
+    function itemNameFor(bc) {
+      return itemDirectory[bc] || '';
+    }
 
     document.getElementById('barcode').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -218,7 +237,8 @@
           bulkItems[barcode] = { qty: base + step, mode: 'delta' };
         }
         renderBulkTable();
-        document.getElementById('result').innerText = 'Scanned: ' + barcode;
+        const scanName = itemNameFor(barcode);
+        document.getElementById('result').innerText = 'Scanned: ' + barcode + (scanName ? ' — ' + scanName : '');
       } else {
         sendToServer([{ barcode: barcode, delta: action === 'add' ? 1 : -1 }], true);
       }
@@ -249,7 +269,10 @@
       Object.keys(bulkItems).forEach(function(bc) {
         const item = bulkItems[bc];
         const row = table.insertRow();
-        row.insertCell(0).innerHTML = bc + '<div class="modeTag">' + (item.mode === 'absolute' ? 'SET TO' : 'Δ CHANGE') + '</div>';
+        const name = itemNameFor(bc);
+        row.insertCell(0).innerHTML = bc +
+          (name ? '<div class="itemName">' + name + '</div>' : '') +
+          '<div class="modeTag">' + (item.mode === 'absolute' ? 'SET TO' : 'Δ CHANGE') + '</div>';
 
         const qtyCell = row.insertCell(1);
         qtyCell.innerHTML =
