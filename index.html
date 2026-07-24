@@ -4,267 +4,195 @@
 <meta charset="UTF-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    color: #fff;
-    min-height: 100vh;
-    background-image: url('https://lh3.googleusercontent.com/d/1qWOUjgedEEOdzldBypFmJWB1Ghgr8kAU');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-  }
-  .topbar {
-    background: #000;
-    padding: 18px 10px;
-    border-bottom: 3px solid #d4af37;
-  }
-  .topbar h1 {
-    color: #d4af37;
-    margin: 0;
-    font-size: 24px;
-    letter-spacing: 1px;
-  }
-  .container {
-    max-width: 400px;
-    margin: 25px auto;
-    background: rgba(0, 0, 0, 0.65);
-    border: 1px solid #d4af37;
-    border-radius: 14px;
-    padding: 25px 18px;
-  }
-  input#barcode {
-    font-size: 20px;
-    padding: 10px;
-    width: 85%;
-    max-width: 240px;
-    text-align: center;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 10px;
-  }
-  button {
-    font-size: 16px;
-    padding: 12px 18px;
-    margin: 5px;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-  }
-  .add { background-color: #2e7d32; }
-  .remove { background-color: #c62828; }
-  .camera { background-color: #1565c0; }
-  .mode { background-color: #d4af37; color: #000; font-weight: bold; }
-  .submit { background-color: #d4af37; color: #000; font-weight: bold; }
-  .clear { background-color: #444; }
-  #result { margin-top: 15px; font-size: 16px; font-weight: bold; min-height: 22px; }
-  #reader { width: 260px; margin: 15px auto; border-radius: 10px; overflow: hidden; }
-  table { margin: 15px auto 0; border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; }
-  th { background: #000; color: #d4af37; padding: 8px; font-size: 14px; }
-  td { padding: 8px; color: #222; border-bottom: 1px solid #eee; font-size: 14px; }
-  .removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 20px; }
-  .stepper { width: 32px; height: 32px; font-size: 20px; border-radius: 6px; background: #455a64; color: white; cursor: pointer; }
-  .qtyInput { width: 55px; text-align: center; font-size: 16px; margin: 0 5px; padding: 5px 0; border-radius: 6px; border: 1px solid #ccc; }
-  #bulkActionLabel { color: #d4af37; font-size: 16px; }
-  #bulkSection { display: none; margin-top: 8px; }
-  #instantButtons { margin-top: 5px; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: #fff;
+  min-height: 100vh;
+  background: #111;
+}
+.topbar {
+  background: #000;
+  padding: 18px 10px;
+  border-bottom: 3px solid #d4af37;
+}
+.topbar h1 {
+  color: #d4af37;
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: 1px;
+}
+.container {
+  max-width: 400px;
+  margin: 25px auto;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid #d4af37;
+  border-radius: 14px;
+  padding: 25px 18px;
+}
+input#barcode, input#setQtyValue {
+  font-size: 20px;
+  padding: 10px;
+  width: 85%;
+  max-width: 240px;
+  text-align: center;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 10px;
+}
+button {
+  font-size: 16px;
+  padding: 12px 18px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+.add { background-color: #2e7d32; }
+.remove { background-color: #c62828; }
+.set { background-color: #d4af37; color: #000; font-weight: bold; }
+.camera { background-color: #1565c0; }
+.mode { background-color: #444; }
+.submit { background-color: #d4af37; color: #000; font-weight: bold; }
+.clear { background-color: #444; }
+#result { margin-top: 15px; font-size: 16px; font-weight: bold; min-height: 24px; }
+#reader { width: 260px; margin: 15px auto; border-radius: 10px; overflow: hidden; }
+table { margin: 15px auto 0; border-collapse: collapse; width: 100%; background: #fff; }
+th { background: #000; color: #d4af37; padding: 8px; font-size: 14px; }
+td { padding: 8px; color: #222; border-bottom: 1px solid #eee; font-size: 14px; }
+.removeRow { color: #c62828; cursor: pointer; font-weight: bold; font-size: 20px; }
+.stepper { width: 32px; height: 32px; font-size: 20px; border-radius: 6px; border: none; }
+.qtyInput { width: 55px; text-align: center; font-size: 16px; margin: 0 5px; }
+#bulkActionLabel { color: #d4af37; font-size: 16px; }
+#bulkSection { margin-top: 8px; }
+#setQtyBlock { display: none; margin-top: 8px; }
+#instantButtons { margin-top: 5px; }
+.modeToggle button { opacity: 0.6; }
+.modeToggle button.active { opacity: 1; box-shadow: 0 0 0 2px #fff; }
 </style>
 </head>
 <body>
-  <div class="topbar"><h1>Inventory Scanner</h1></div>
+<div class="topbar"><h1>Inventory Scanner</h1></div>
+<div class="container">
+  <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
+  <br><br>
+  <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
 
-  <div class="container">
-    <button class="mode" id="modeBtn" onclick="toggleMode()">Switch to Bulk Mode</button>
-
-    <br><br>
-    <input type="text" id="barcode" placeholder="Scan or type barcode" autofocus>
-
-    <div id="instantButtons">
-      <br>
-      <button class="add" onclick="handleScan('add')">ADD (+1)</button>
-      <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
-    </div>
-
+  <div id="instantButtons">
     <br>
-    <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
-    <div id="reader"></div>
-    <div id="result"></div>
-
-    <div id="bulkSection">
-      <h3 id="bulkActionLabel">Currently: ADDING items</h3>
-      <button class="add" onclick="setBulkAction('add')">Set to ADD</button>
-      <button class="remove" onclick="setBulkAction('remove')">Set to REMOVE</button>
-      <table id="bulkTable">
-        <tr><th>Barcode</th><th>Quantity</th><th></th></tr>
-      </table>
-      <br>
-      <button class="submit" onclick="submitBulk()">Submit All</button>
-      <button class="clear" onclick="clearBulk()">Clear List</button>
-    </div>
+    <button class="set" onclick="promptSetQty()">Update QTY</button>
+    <button class="add" onclick="handleScan('add')">ADD (+1)</button>
+    <button class="remove" onclick="handleScan('remove')">REMOVE (-1)</button>
   </div>
 
-  <script>
-    // PASTE YOUR APPS SCRIPT WEB APP URL BELOW (from Part 7b)
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw8MilQ1PiIVsqVlA-JViD631rZqcLBtGfPRymWQ9cU8idvOxlhn1eYF6vcms9i4tsl/exec';
+  <br>
+  <button class="camera" id="cameraBtn" onclick="toggleCamera()">📷 Scan with Camera</button>
+  <div id="reader"></div>
+  <div id="result"></div>
 
-    let bulkMode = false;
-    let bulkAction = 'add';
-    let bulkItems = {};
-    let lastScanCode = '';
-    let lastScanTime = 0;
+  <div id="bulkSection" style="display:none;">
+    <h3 id="bulkActionLabel">Currently: UPDATING QTY</h3>
+    <div class="modeToggle">
+      <button class="set active" id="setModeBtn" onclick="setBulkAction('set')">Update QTY</button>
+      <button class="add" id="addModeBtn" onclick="setBulkAction('add')">Set to ADD</button>
+      <button class="remove" id="removeModeBtn" onclick="setBulkAction('remove')">Set to REMOVE</button>
+    </div>
+    <table id="bulkTable">
+      <tr><th>Barcode</th><th>Qty</th><th></th></tr>
+    </table>
+    <br>
+    <button class="submit" onclick="submitBulk()">Submit All</button>
+    <button class="clear" onclick="clearBulk()">Clear List</button>
+  </div>
+</div>
 
-    document.getElementById('barcode').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        handleScan(bulkMode ? bulkAction : 'add');
-      }
-    });
+<script>
+// PASTE YOUR APPS SCRIPT WEB APP URL BELOW (from Part 3) — leave as-is if this file
+// is served directly by Apps Script (doGet), only needed for a separate GitHub Pages page.
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw8MilQ1PiIVsqVlA-JViD631rZqcLBtGfPRymWQ9cU8idvOxlhn1eYF6vcms9i4tsl/exec';
 
-    function toggleMode() {
-      bulkMode = !bulkMode;
-      document.getElementById('bulkSection').style.display = bulkMode ? 'block' : 'none';
-      document.getElementById('instantButtons').style.display = bulkMode ? 'none' : 'block';
-      document.getElementById('modeBtn').innerText = bulkMode ? 'Switch to Instant Mode' : 'Switch to Bulk Mode';
-      document.getElementById('result').innerText = bulkMode
-        ? 'Bulk mode on: scans are added to the list below.'
-        : 'Instant mode on: each scan updates Smartsheet right away.';
+let bulkMode = false;
+let bulkAction = 'set'; // 'set' | 'add' | 'remove'  — default prioritizes Update QTY
+let bulkItems = {}; // barcode -> { mode, value }
+
+document.getElementById('barcode').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    if (bulkMode) {
+      handleScan(bulkAction);
+    } else {
+      handleScan('add'); // Enter in instant mode still does a quick +1 by default
     }
+  }
+});
 
-    function setBulkAction(action) {
-      bulkAction = action;
-      document.getElementById('bulkActionLabel').innerText = 'Currently: ' + (action === 'add' ? 'ADDING items' : 'REMOVING items');
-    }
+function toggleMode() {
+  bulkMode = !bulkMode;
+  document.getElementById('bulkSection').style.display = bulkMode ? 'block' : 'none';
+  document.getElementById('instantButtons').style.display = bulkMode ? 'none' : 'block';
+  document.getElementById('modeBtn').innerText = bulkMode ? 'Switch to Instant Mode' : 'Switch to Bulk Mode';
+  document.getElementById('result').innerText = bulkMode
+    ? 'Bulk mode on: scans are added to the list below.'
+    : 'Instant mode on: each scan updates Smartsheet right away.';
+}
 
-    function handleScan(action) {
-      const barcode = document.getElementById('barcode').value.trim();
-      document.getElementById('barcode').value = '';
-      document.getElementById('barcode').focus();
-      if (!barcode) return;
+function setBulkAction(action) {
+  bulkAction = action;
+  const labels = { set: 'UPDATING QTY', add: 'ADDING items', remove: 'REMOVING items' };
+  document.getElementById('bulkActionLabel').innerText = 'Currently: ' + labels[action];
+  ['setModeBtn','addModeBtn','removeModeBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(action + 'ModeBtn').classList.add('active');
+}
 
-      if (bulkMode) {
-        const step = action === 'add' ? 1 : -1;
-        bulkItems[barcode] = (bulkItems[barcode] || 0) + step;
-        renderBulkTable();
-        document.getElementById('result').innerText = 'Scanned: ' + barcode;
-      } else {
-        sendToServer([{ barcode: barcode, delta: action === 'add' ? 1 : -1 }], true);
-      }
-    }
+// ---- INSTANT MODE ----
 
-    // Scanning the same barcode again just bumps its quantity by 1 automatically.
-    // You can also edit the number directly, or use the − / + buttons, or delete the row entirely.
-    function renderBulkTable() {
-      const table = document.getElementById('bulkTable');
-      table.innerHTML = '<tr><th>Barcode</th><th>Quantity</th><th></th></tr>';
-      Object.keys(bulkItems).forEach(function(bc) {
-        const qty = bulkItems[bc];
-        const row = table.insertRow();
-        row.insertCell(0).innerText = bc;
+function handleScan(action) {
+  const barcode = document.getElementById('barcode').value.trim();
+  document.getElementById('barcode').value = '';
+  document.getElementById('barcode').focus();
+  if (!barcode) return;
 
-        const qtyCell = row.insertCell(1);
-        qtyCell.innerHTML =
-          '<button class="stepper" onclick="adjustQty(\'' + bc + '\', -1)">−</button>' +
-          '<input type="number" class="qtyInput" value="' + qty + '" onchange="setQty(\'' + bc + '\', this.value)">' +
-          '<button class="stepper" onclick="adjustQty(\'' + bc + '\', 1)">+</button>';
+  sendToServer([{ barcode: barcode, mode: action, delta: action === 'add' ? 1 : -1 }], true);
+}
 
-        const delCell = row.insertCell(2);
-        delCell.innerHTML = '<span class="removeRow" onclick="removeBulkItem(\'' + bc + '\')">✕</span>';
-      });
-    }
+function promptSetQty() {
+  const barcode = document.getElementById('barcode').value.trim();
+  if (!barcode) {
+    document.getElementById('result').innerText = 'Scan or type a barcode first.';
+    return;
+  }
+  const value = prompt('Set exact quantity for ' + barcode + ':');
+  if (value === null) return; // cancelled
+  const num = parseInt(value, 10);
+  if (isNaN(num)) {
+    document.getElementById('result').innerText = 'Please enter a number.';
+    return;
+  }
+  document.getElementById('barcode').value = '';
+  document.getElementById('barcode').focus();
+  sendToServer([{ barcode: barcode, mode: 'set', value: num }], true);
+}
 
-    function adjustQty(bc, amount) {
-      bulkItems[bc] = (bulkItems[bc] || 0) + amount;
-      renderBulkTable();
-    }
+// ---- BULK MODE ----
+// Scanning the same barcode again in ADD/REMOVE bumps quantity by 1.
+// In Update QTY mode, scanning just adds it to the list at 0 — type the real count into the box.
 
-    function setQty(bc, value) {
-      const n = parseInt(value, 10);
-      bulkItems[bc] = isNaN(n) ? 0 : n;
-    }
+function handleBulkScan() {
+  const barcode = document.getElementById('barcode').value.trim();
+  document.getElementById('barcode').value = '';
+  document.getElementById('barcode').focus();
+  if (!barcode) return;
 
-    function removeBulkItem(bc) {
-      delete bulkItems[bc];
-      renderBulkTable();
-    }
+  if (!bulkItems[barcode] || bulkItems[barcode].mode !== bulkAction) {
+    bulkItems[barcode] = { mode: bulkAction, value: bulkAction === 'set' ? 0 : (bulkAction === 'add' ? 1 : -1) };
+  } else if (bulkAction !== 'set') {
+    bulkItems[barcode].value += (bulkAction === 'add' ? 1 : -1);
+  }
+  renderBulkTable();
+  document.getElementById('result').innerText = 'Scanned: ' + barcode;
+}
 
-    function clearBulk() {
-      bulkItems = {};
-      renderBulkTable();
-      document.getElementById('result').innerText = 'List cleared.';
-    }
-
-    function submitBulk() {
-      const items = Object.keys(bulkItems).map(function(bc) {
-        return { barcode: bc, delta: bulkItems[bc] };
-      });
-      if (items.length === 0) {
-        document.getElementById('result').innerText = 'Nothing to submit.';
-        return;
-      }
-      sendToServer(items, false);
-    }
-
-    function sendToServer(items, isInstant) {
-      document.getElementById('result').innerText = 'Working...';
-      fetch(WEBAPP_URL, {
-        method: 'POST',
-        body: JSON.stringify({ items: items })
-      })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (!data.success) {
-            document.getElementById('result').innerText = 'Error: ' + data.message;
-            return;
-          }
-          const summary = data.results.map(function(r) { return r.message; }).join(' | ');
-          document.getElementById('result').innerText = summary;
-          if (!isInstant) {
-            bulkItems = {};
-            renderBulkTable();
-          }
-        })
-        .catch(function(err) {
-          document.getElementById('result').innerText = 'Error: ' + err.message;
-        });
-    }
-
-    let html5QrCode;
-    let cameraRunning = false;
-
-    function toggleCamera() {
-      if (cameraRunning) { stopCamera(); } else { startCameraInternal(); }
-    }
-
-    function stopCamera() {
-      if (html5QrCode) {
-        html5QrCode.stop().then(function() {
-          cameraRunning = false;
-          document.getElementById('reader').innerHTML = '';
-          document.getElementById('cameraBtn').innerText = '📷 Scan with Camera';
-        });
-      }
-    }
-
-    function startCameraInternal() {
-      cameraRunning = true;
-      document.getElementById('cameraBtn').innerText = '⏹ Stop Camera';
-      html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 200 },
-        function(decodedText) {
-          const now = Date.now();
-          if (decodedText === lastScanCode && now - lastScanTime < 2000) return; // avoid double-counting the same scan
-          lastScanCode = decodedText;
-          lastScanTime = now;
-          document.getElementById('barcode').value = decodedText;
-          handleScan(bulkMode ? bulkAction : 'add');
-          if (!bulkMode) { stopCamera(); } // in instant mode, stop after one scan; in bulk mode, keep scanning
-        }
-      );
-    }
-  </script>
-</body>
-</html>
+function renderBulkTable() {
+  const table =
